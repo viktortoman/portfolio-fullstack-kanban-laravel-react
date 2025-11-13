@@ -488,6 +488,273 @@
                     }
                 }
             }
+        },
+        "/api/v1/boards/{board}/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get all tasks for a specific board",
+                "operationId": "getBoardTasks",
+                "parameters": [
+                    {
+                        "name": "board",
+                        "in": "path",
+                        "description": "The ID of the board",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of tasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Task"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (User does not own this board)"
+                    },
+                    "404": {
+                        "description": "Board not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Create a new task on a board",
+                "operationId": "createTaskForBoard",
+                "parameters": [
+                    {
+                        "name": "board",
+                        "in": "path",
+                        "description": "The ID of the board",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Task data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "New Task Title"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Task details...",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "todo",
+                                            "in_progress",
+                                            "done"
+                                        ],
+                                        "example": "todo"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Task created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (User cannot 'update' this board)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tasks/{task}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get a single task by its ID",
+                "operationId": "getTaskById",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "The ID of the task",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (User does not own the parent board)"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update an existing task",
+                "description": "Updates title, description, status, or order. This endpoint is used for drag-and-drop by sending new 'status' and 'order'.",
+                "operationId": "updateTask",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "The ID of the task to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Task data to update. All fields are optional.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Updated Task Title"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Updated task details...",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "todo",
+                                            "in_progress",
+                                            "done"
+                                        ],
+                                        "example": "in_progress"
+                                    },
+                                    "order": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Task updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden (User does not own the parent board)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Delete an existing task",
+                "operationId": "deleteTask",
+                "parameters": [
+                    {
+                        "name": "task",
+                        "in": "path",
+                        "description": "The ID of the task to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content (Task deleted successfully)"
+                    },
+                    "403": {
+                        "description": "Forbidden (User does not own the parent board)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -518,6 +785,53 @@
                         "type": "string",
                         "format": "date-time",
                         "example": "2025-11-13T10:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Task": {
+                "title": "Task",
+                "description": "Task model. Represents a single card on a Kanban board.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "board_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Buy milk"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Get 2% milk.",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "The column the task is in",
+                        "type": "string",
+                        "enum": [
+                            "todo",
+                            "in_progress",
+                            "done"
+                        ],
+                        "example": "todo"
+                    },
+                    "order": {
+                        "description": "Position for drag-and-drop",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -580,6 +894,10 @@
         {
             "name": "Base",
             "description": "Base"
+        },
+        {
+            "name": "Tasks",
+            "description": "Tasks"
         }
     ]
 }

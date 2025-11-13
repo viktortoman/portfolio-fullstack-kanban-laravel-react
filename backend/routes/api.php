@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BoardController;
 use App\Http\Controllers\Api\V1\StatusController;
+use App\Http\Controllers\Api\V1\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -16,5 +17,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
 
         Route::apiResource('boards', BoardController::class);
+        Route::apiResource('boards.tasks', TaskController::class)->shallow();
     });
 });
