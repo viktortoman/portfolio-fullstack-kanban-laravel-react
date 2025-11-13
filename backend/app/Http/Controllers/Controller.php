@@ -18,7 +18,15 @@ namespace App\Http\Controllers;
  *
  * @OA\Server(
  * url=L5_SWAGGER_CONST_HOST,
- * description="Developer (Docker) API Server"
+ * description="Development (Docker) API Server"
+ * )
+ *
+ * @OA\SecurityScheme(
+ * securityScheme="bearerAuth",
+ * type="http",
+ * scheme="bearer",
+ * bearerFormat="JWT",
+ * description="Enter token in format: Bearer <token>"
  * )
  */
 abstract class Controller
