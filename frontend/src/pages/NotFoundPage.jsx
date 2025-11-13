@@ -6,7 +6,6 @@ export default function NotFoundPage() {
   const homePath = user ? '/' : '/login';
 
   return (
-    // We use the same centered layout as the LoginPage
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 text-center bg-white rounded-lg shadow-md">
         <h1 className="text-6xl font-extrabold text-indigo-600">
