@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Task\ReorderTasksRequest;
 use App\Http\Requests\Api\V1\Task\StoreTaskRequest;
 use App\Http\Requests\Api\V1\Task\UpdateTaskRequest;
 use App\Models\Board;
@@ -12,6 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
@@ -225,5 +227,81 @@ class TaskController extends Controller
         $task->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * @OA\Post(
+     * path="/api/v1/tasks/reorder",
+     * operationId="reorderTasks",
+     * tags={"Tasks"},
+     * summary="Reorder tasks in a specific column",
+     * description="Updates the status and order of multiple tasks at once. Used for drag-and-drop.",
+     * security={ {"bearerAuth": {} } },
+     * @OA\RequestBody(
+     * required=true,
+     * description="The status of the column and the array of task IDs in their new order.",
+     * @OA\JsonContent(
+     * required={"status", "taskIds"},
+     * @OA\Property(property="status", type="string", example="in_progress", enum={"todo", "in_progress", "done"}),
+     * @OA\Property(
+     * property="taskIds",
+     * type="array",
+     * @OA\Items(type="integer"),
+     * example={5, 2, 8}
+     * )
+     * )
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Tasks reordered successfully",
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="Tasks reordered successfully.")
+     * )
+     * ),
+     * @OA\Response(
+     * response=403,
+     * description="Forbidden (User does not own the board)"
+     * ),
+     * @OA\Response(
+     * response=422,
+     * description="Validation Error"
+     * )
+     * )
+     * @throws AuthorizationException
+     */
+    public function reorder(ReorderTasksRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $taskIds = $validated['taskIds'];
+        $status = $validated['status'];
+
+        if (empty($taskIds)) {
+            return response()->json(['message' => 'No tasks to reorder.']);
+        }
+
+        $tasks = Task::whereIn('id', $taskIds)->get();
+        if ($tasks->isEmpty()) {
+            return response()->json(['message' => 'No valid tasks found.'], 404);
+        }
+
+        $board = $tasks->first()->board;
+        $this->authorize('update', $board);
+
+        if (!$tasks->every(fn($task) => $task->board_id === $board->id)) {
+            abort(403, 'Cannot reorder tasks from different boards.');
+        }
+
+        DB::transaction(function () use ($status, $taskIds, $board) {
+            foreach ($taskIds as $index => $taskId) {
+                Task::where('id', $taskId)
+                    ->where('board_id', $board->id)
+                    ->update([
+                        'status' => $status,
+                        'order' => $index
+                    ]);
+            }
+        });
+
+        return response()->json(['message' => 'Tasks reordered successfully.']);
     }
 }

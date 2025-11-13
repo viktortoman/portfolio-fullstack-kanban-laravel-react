@@ -18,5 +18,6 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('boards', BoardController::class);
         Route::apiResource('boards.tasks', TaskController::class)->shallow();
+        Route::post('/tasks/reorder', [TaskController::class, 'reorder']);
     });
 });

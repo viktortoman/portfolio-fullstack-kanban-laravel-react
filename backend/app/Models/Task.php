@@ -30,6 +30,7 @@ class Task extends Model
         'board_id',
         'title',
         'description',
+        'status',
         'order',
     ];
 
