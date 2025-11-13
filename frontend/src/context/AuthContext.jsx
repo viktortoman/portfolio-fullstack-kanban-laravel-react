@@ -1,32 +1,47 @@
-import {createContext, useContext, useState, useEffect} from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import apiClient from '../api/axios';
 
 const AuthContext = createContext();
 
-export function AuthProvider({children}) {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      // If token is null (e.g., on logout), remove it
-      localStorage.removeItem('token');
-      delete apiClient.defaults.headers.common['Authorization'];
-    }
-  }, [token]);
+    const checkUserOnLoad = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
 
+          const response = await apiClient.get('/user');
+
+          setUser(response.data.user);
+          setToken(storedToken);
+
+        } catch (error) {
+          localStorage.removeItem('token');
+          delete apiClient.defaults.headers.common['Authorization'];
+          setUser(null);
+          setToken(null);
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    checkUserOnLoad();
+  }, []);
 
   const login = async (email, password) => {
-    // Call the /api/v1/login endpoint we built
-    const response = await apiClient.post('/login', {email, password});
+    const response = await apiClient.post('/login', { email, password });
+    const { token, user } = response.data;
 
-    // Update our app-wide state
-    setToken(response.data.token);
-    setUser(response.data.user);
+    setToken(token);
+    setUser(user);
+    localStorage.setItem('token', token);
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
   const register = async (name, email, password, password_confirmation) => {
@@ -37,26 +52,45 @@ export function AuthProvider({children}) {
       password_confirmation,
     });
 
-    setToken(response.data.token);
-    setUser(response.data.user);
+    const { token, user } = response.data;
+
+    setToken(token);
+    setUser(user);
+    localStorage.setItem('token', token);
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
+  const logout = async () => {
+    try {
+      // 1. Try to call backend
+      await apiClient.post('/logout');
+    } catch (error) {
+      console.error("Backend logout failed:", error);
+    } finally {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('token');
+      delete apiClient.defaults.headers.common['Authorization'];
+    }
   };
 
   const value = {
     user,
     token,
+    isLoading,
     login,
     register,
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
+// Custom hook
 export const useAuth = () => {
   return useContext(AuthContext);
 };
