@@ -1,0 +1,57 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "TaskFlow Kanban API Documentation",
+        "description": "A Trello-like Kanban board application built as a full-stack portfolio project. It features a Laravel 12 REST API backend, a React (Vite) frontend, and MySQL, all fully containerized with Docker Compose.",
+        "contact": {
+            "email": "viktor.toman19@gmail.com"
+        },
+        "license": {
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Developer (Docker) API Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/status": {
+            "get": {
+                "tags": [
+                    "Base"
+                ],
+                "summary": "API Status Check",
+                "description": "A simple 'health-check' endpoint that confirms that the API is running and responding.",
+                "operationId": "getApiStatus",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "OK"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Base",
+            "description": "Base"
+        }
+    ]
+}
