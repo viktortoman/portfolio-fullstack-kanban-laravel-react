@@ -1,0 +1,63 @@
+services:
+  # 1. Laravel
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kanban_app
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - kanban-network
+
+  # 2. Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: kanban_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - kanban-network
+
+  # 3. MySQL
+  db:
+    image: mysql:8.0
+    container_name: kanban_db
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_DATABASE: kanban_db
+      MYSQL_USER: kanban_user
+      MYSQL_PASSWORD: kanban_password
+      MYSQL_ROOT_PASSWORD: root_secret
+    volumes:
+      - kanban_db_data:/var/lib/mysql
+    networks:
+      - kanban-network
+
+  # 4. React Frontend (Vite Dev Server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: kanban_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - kanban-network
+
+networks:
+  kanban-network:
+    driver: bridge
+
+volumes:
+  kanban_db_data:
