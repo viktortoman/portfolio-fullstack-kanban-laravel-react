@@ -112,12 +112,12 @@ Once `docker-compose up` is complete, the environment is ready:
 
 ### 3. Database (MySQL)
 
-* **Access (Host):** `localhost:3306`
+* **Access (Host):** `localhost:3309`
 * **Access (Container):** The Laravel app connects to it via the service name `db`.
 * **Credentials:** As defined in `docker-compose.yml` and `backend/.env`:
     * **Database:** `kanban_db`
-    * **User:** `kanban_user`
-    * **Password:** `kanban_password`
+    * **User:** `root`
+    * **Password:** `root_secret`
 * **Persistence:** Database data is stored in a Docker volume (`kanban_db_data`) so it persists even when you stop or remove the containers.
 
 ---
