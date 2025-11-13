@@ -54,6 +54,8 @@ services:
       - /app/node_modules
     networks:
       - kanban-network
+    stdin_open: true
+    tty: true
 
 networks:
   kanban-network:
